@@ -31,7 +31,7 @@ int main() {
 	
 	//TODO: create a glfw window.
 	window = nullptr;
-	//TODO: tell GLFW to the window the current context
+	//TODO: tell GLFW to make the window the current context
 
 	//TODO: tell glad to load the gl loader, use glfw's
 	//			GetProcAddress function
