@@ -1,0 +1,13 @@
+#version 330 core
+
+//TODO: explicitly state the locations of these attributes
+in vec3 vertexPos;
+in vec3 vertexColor;
+
+out vec3 fragmentColor;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 1.0);
+    //TODO: pass the vertex's color along to the fragment shader
+}
