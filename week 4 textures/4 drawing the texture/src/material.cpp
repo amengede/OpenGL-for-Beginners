@@ -6,7 +6,7 @@ Material::Material(const char* filename) {
 	unsigned char* data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
 
 	//make the texture
-	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+	glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 	
     //load data
@@ -22,8 +22,6 @@ Material::Material(const char* filename) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_set_flip_vertically_on_load(true);
 }
 
 Material::~Material() {

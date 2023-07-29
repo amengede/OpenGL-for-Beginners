@@ -6,7 +6,7 @@ Material::Material(char* filename) {
 	unsigned char* data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
 
 	//make the texture
-	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+	glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 	
     //load data

@@ -96,8 +96,8 @@ int main() {
 	TriangleMesh* triangle = new TriangleMesh();
 
 	unsigned int shader = make_shader(
-		"shaders/vertex.txt", 
-		"shaders/fragment.txt"
+		"../src/shaders/vertex.txt", 
+		"../src/shaders/fragment.txt"
 	);
 
 	while (!glfwWindowShouldClose(window)) {
