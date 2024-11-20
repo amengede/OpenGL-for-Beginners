@@ -1,0 +1,21 @@
+#version 460 core
+#extension GL_ARB_bindless_texture : require
+
+layout(binding=7, std430) readonly buffer textureHandles {
+    sampler2D textures[];
+};
+
+in vec2 fragmentTexCoord;
+in vec3 fragmentNormal;
+in flat int samplerIndex;
+
+out vec4 screenColor;
+
+uniform sampler2DArray material;
+
+void main()
+{
+    sampler2D tex = textures[samplerIndex];
+    float intensity = min(1.0, max(0.0, dot(fragmentNormal, normalize(vec3(1.0, 1.0, 1.0)))));
+    screenColor = intensity * texture(tex, fragmentTexCoord);//vec4(1.0);//texture(tex, fragmentTexCoord);
+}
