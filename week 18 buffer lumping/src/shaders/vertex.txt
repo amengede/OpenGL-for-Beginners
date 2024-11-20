@@ -1,0 +1,29 @@
+#version 460 core
+
+#extension GL_ARB_bindless_texture : require
+
+layout (location=0) in vec3 vertexPos;
+layout (location=1) in vec2 vertexTexCoord;
+layout (location=2) in vec3 vertexNormal;
+
+out vec2 fragmentTexCoord;
+out vec3 fragmentNormal;
+
+uniform mat4 viewProj;
+uniform int objectType;
+
+layout(binding=1, std430) readonly buffer objectOffsetBuffer {
+    uint objectOffsets[];
+};
+
+layout(binding=2, std430) readonly buffer modelBuffer {
+    mat4 modelTransforms[];
+};
+
+void main()
+{
+    mat4 model = modelTransforms[objectOffsets[objectType] + gl_InstanceID];
+    gl_Position = viewProj * model * vec4(vertexPos, 1.0);
+    fragmentTexCoord = vertexTexCoord;
+    fragmentNormal = normalize(mat3(model) * vertexNormal);
+}
