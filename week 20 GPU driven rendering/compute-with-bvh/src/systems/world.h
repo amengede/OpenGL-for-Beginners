@@ -4,11 +4,13 @@
 #include "../components/components.h"
 #include "camera.h"
 #include <taskflow/taskflow.hpp>
+#include <taskflow/algorithm/for_each.hpp>
+#include <atomic>
 
 class World {
 public:
 	World(uint32_t computeShader);
-	void build(std::vector<GameObject>& objects, std::vector<AABB>& boxes);
+	void build(std::vector<GameObject>& objects, std::vector<Sphere>& spheres);
 	uint32_t update(float dt, CameraSystem* camera);
 	std::vector<BVHNode> nodes;
 private:
@@ -16,23 +18,22 @@ private:
 	std::vector<StateObject> gameObjectStates;
 	std::vector<UpdateObject> gameObjectVelocities;
 	std::vector<StateObject> visibleObjects;
-	uint32_t visibleObjectCount = 0;
+	std::atomic<uint32_t> visibleObjectCount = 0;
 
 	std::vector<uint32_t> objectIDs;
 	std::vector<BVHNode> bvhNodes;
 	uint32_t nodesUsed = 0;
 	Sphere boundingSpheres[objectTypeCount];
-	uint32_t maxBoxSize = 256;
+	uint32_t maxBoxSize = 1024;
 
 	void build_bvh();
 	void update_bounds(uint32_t nodeIndex);
 	void subdivide(uint32_t nodeIndex);
-	void update_region(uint32_t i);
 
 	tf::Executor executor;
-	tf::Taskflow work;
-	tf::Task parallelJob;
+	tf::Taskflow taskGraph;
 	float frametime;
-
-	//void* writeLocation;
+	const uint32_t jobCount = 10;
+	BVHNode currentNode;
+	void record_objects(uint32_t jobID);
 };

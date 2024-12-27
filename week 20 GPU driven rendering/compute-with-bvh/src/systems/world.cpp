@@ -11,11 +11,9 @@ World::World(uint32_t computeShader) {
 	this->computeShader = computeShader;
 	glUseProgram(computeShader);
 	objectCountLocation = glGetUniformLocation(computeShader, "maxObjectCount");
-
-	parallelJob = work.for_each_index(0, 2, 1, [this](int i) {update_region(i); });
 }
 
-void World::build(std::vector<GameObject>& objects, std::vector<AABB>& boxes) {
+void World::build(std::vector<GameObject>& objects, std::vector<Sphere>& spheres) {
 
 	// Reserve Objects
 	gameObjectStates.resize(objects.size());
@@ -29,10 +27,7 @@ void World::build(std::vector<GameObject>& objects, std::vector<AABB>& boxes) {
 		objectIDs[i] = objects[i].state.id;
 	}
 	for (size_t i = 0; i < objectTypeCount; ++i) {
-		AABB meshBox = boxes[i];
-		boundingSpheres[i].center = 0.5f * glm::vec3(meshBox.max + meshBox.min);
-		glm::vec3 extent = glm::vec3(meshBox.max - meshBox.min);
-		boundingSpheres[i].radius = abs(extent.x) + abs(extent.y) + abs(extent.z);
+		boundingSpheres[i] = spheres[i];
 	}
 
 	bvhNodes.resize(2 * gameObjectStates.size() - 1);
@@ -45,8 +40,19 @@ void World::build(std::vector<GameObject>& objects, std::vector<AABB>& boxes) {
 	glBindBuffer(GL_COPY_WRITE_BUFFER, objectBuffer);
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, NULL, flags);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, objectBuffer);
-	//flags = GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-	//writeLocation = glMapBufferRange(GL_COPY_WRITE_BUFFER, 0, size, flags);
+
+	taskGraph.clear();
+	auto record = taskGraph.for_each_index(0, 32, 1, [this](int i) {record_objects(i); });
+}
+
+void World::record_objects(uint32_t jobID) {
+
+	uint32_t batchSize = std::ceil(currentNode.sphereCount / 32.0);
+	uint32_t offset = jobID * batchSize;
+
+	for (size_t i = offset; (i < offset + batchSize) && (i < currentNode.sphereCount); ++i) {
+		visibleObjects[visibleObjectCount.fetch_add(1)] = gameObjectStates[objectIDs[i + currentNode.leftChild]];
+	}
 }
 
 void World::build_bvh() {
@@ -149,7 +155,7 @@ uint32_t World::update(float dt, CameraSystem* camera) {
 	frametime = dt;
 
 	// Reset state
-	visibleObjectCount = 0;
+	visibleObjectCount.store(0);
 
 	// Update all objects
 	//executor.run(work).wait();
@@ -160,15 +166,7 @@ uint32_t World::update(float dt, CameraSystem* camera) {
 		stateChunks[i] = _mm256_add_ps(stateChunks[i], _mm256_mul_ps(_mm256_set1_ps(frametime * 0.001f), velocityChunks[i]));
 	}
 
-	//build_bvh();
-	
-	/*
-	for (size_t i = 0; i < gameObjectStates.size(); ++i) {
-		gameObjectStates[i].eulers[0] += frametime * 0.001f * gameObjectVelocities[i].dEulers[0];
-		gameObjectStates[i].eulers[1] += frametime * 0.001f * gameObjectVelocities[i].dEulers[1];
-		gameObjectStates[i].eulers[2] += frametime * 0.001f * gameObjectVelocities[i].dEulers[2];
-	}
-	*/
+	build_bvh();
 
 	// Traverse BVH to record (possibly) visible objects
 	BVHNode node = bvhNodes[0];
@@ -183,9 +181,8 @@ uint32_t World::update(float dt, CameraSystem* camera) {
 
 		if (count > 0) {
 			// External Node, record all children
-			for (uint32_t i = first; i < first + count; ++i) {
-				visibleObjects[visibleObjectCount++] = gameObjectStates[objectIDs[i]];
-			}
+			currentNode = node;
+			executor.run(taskGraph).wait();
 			if (stackPos == 0) {
 				break;
 			}
@@ -236,24 +233,10 @@ uint32_t World::update(float dt, CameraSystem* camera) {
 	void* writeLocation = glMapBufferRange(GL_COPY_WRITE_BUFFER, 0, size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	memcpy(writeLocation, visibleObjects.data(), size);
 	glUnmapBuffer(GL_COPY_WRITE_BUFFER);
-	
-	//memcpy(writeLocation, visibleObjects.data(), size);
 
 	//auto stop = std::chrono::high_resolution_clock::now();
 	//auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 	//std::cout << "update took " << duration.count() << " us." << std::endl;
 
 	return visibleObjectCount;
-}
-
-void World::update_region(uint32_t i) {
-
-	uint32_t jobSize = gameObjectStates.size() / 2;
-	uint32_t offset = i * jobSize;
-
-	__m256* stateChunks = (__m256*)gameObjectStates.data();
-	__m256* velocityChunks = (__m256*)gameObjectVelocities.data();
-	for (size_t j = offset; j < offset + jobSize; ++j) {
-		stateChunks[j] = _mm256_add_ps(stateChunks[j], _mm256_mul_ps(_mm256_set1_ps(frametime * 0.001f), velocityChunks[j]));
-	}
 }

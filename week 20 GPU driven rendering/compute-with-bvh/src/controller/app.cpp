@@ -45,7 +45,7 @@ void App::make_objects() {
 	renderSystem->batch(factory.objectCounts);
 	renderSystem->make_resources();
 
-	world->build(gameObjects, renderSystem->AABBs);
+	world->build(gameObjects, renderSystem->spheres);
 	gameObjects.clear();
 }
 

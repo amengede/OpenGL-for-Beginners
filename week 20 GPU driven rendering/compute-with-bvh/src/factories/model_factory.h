@@ -1,5 +1,6 @@
 #pragma once
 #include "../config.h"
+#include "../components/components.h"
 
 class MeshFactory {
 
@@ -11,6 +12,7 @@ public:
     std::unordered_map<uint32_t, uint32_t> firstIndices;
     std::unordered_map<uint32_t, uint32_t> indexCounts;
     std::unordered_map<uint32_t, AABB> AABBs;
+    std::unordered_map<uint32_t, Sphere> boundingSpheres;
 
 private:
 

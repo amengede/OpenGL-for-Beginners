@@ -31,6 +31,7 @@ void RenderSystem::batch(uint32_t* objectCounts) {
 
 void RenderSystem::make_resources() {
     AABBs.resize(objectTypeCount);
+    spheres.resize(objectTypeCount);
 
     MeshFactory meshFactory;
     for (int i = 0; i < objectTypeCount; ++i) {
@@ -41,6 +42,7 @@ void RenderSystem::make_resources() {
         drawCommands[i].firstIndex = meshFactory.firstIndices[i];
         drawCommands[i].indexCount = meshFactory.indexCounts[i];
         AABBs[i] = meshFactory.AABBs[i];
+        spheres[i] = meshFactory.boundingSpheres[i];
     }
     mesh = meshFactory.finalize();
     glBindVertexArray(mesh.VAO);

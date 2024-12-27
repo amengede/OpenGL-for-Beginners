@@ -4,6 +4,7 @@
 #include "../factories/model_factory.h"
 #include <glad/glad.h>
 #include <unordered_map>
+#include "../components/components.h"
 
 struct DrawCommand {
     uint32_t indexCount = 0;
@@ -26,6 +27,7 @@ public:
     void update(uint32_t visibleObjectCount);
 
     std::vector<AABB> AABBs;
+    std::vector<Sphere> spheres;
     
 private:
 

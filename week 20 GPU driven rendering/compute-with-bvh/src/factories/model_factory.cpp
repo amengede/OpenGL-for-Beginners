@@ -39,6 +39,9 @@ void MeshFactory::consume(int i) {
     std::vector<uint32_t> indices;
     std::unordered_map<std::string, uint32_t> history;
 
+    glm::vec3 center = glm::vec3(0.0f);
+    float radius = 0.0f;
+
     size_t vertexCount = 0;
     size_t texcoordCount = 0;
     size_t normalCount = 0;
@@ -80,6 +83,8 @@ void MeshFactory::consume(int i) {
     indices.reserve(triangleCount * 3 * 8);
     AABBs[i] = AABB();
 
+    float coefficient = 1.0f / vertexCount;
+
     file.open(modelNames[i]);
     while (std::getline(file, line)) {
 
@@ -89,6 +94,7 @@ void MeshFactory::consume(int i) {
             glm::vec3 pos = read_vec3(words, scales[i]);
             AABBs[i].min = glm::min(AABBs[i].min, glm::vec4(pos, 1.0f));
             AABBs[i].max = glm::max(AABBs[i].max, glm::vec4(pos, 1.0f));
+            center += coefficient * pos;
             v.push_back(pos);
         }
 
@@ -105,6 +111,12 @@ void MeshFactory::consume(int i) {
         }
     }
     file.close();
+
+    for (size_t j = 0; j < vertexCount; ++j) {
+        radius = std::max(radius, glm::length(v[j] - center));
+    }
+
+    boundingSpheres[i] = { center, radius };
 
     indexCounts[i] = static_cast<uint32_t>(indices.size());
     firstIndices[i] = static_cast<uint32_t>(indexLump.size());
