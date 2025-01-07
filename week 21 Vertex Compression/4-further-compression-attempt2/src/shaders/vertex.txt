@@ -1,0 +1,41 @@
+#version 460 core
+
+#extension GL_ARB_bindless_texture : require
+
+//---- Structs ----//
+
+struct VertexData {
+    float position[3];
+    float uv[2];
+    float normal[3];
+};
+
+//---- Attributes ----//
+
+layout (location=0) in vec3 vertexPos;
+layout (location=1) in vec2 vertexTexCoord;
+layout (location=2) in vec3 vertexNormal;
+
+out vec2 fragmentTexCoord;
+out vec3 fragmentNormal;
+out flat int samplerIndex;
+
+//---- Resources ----//
+
+uniform mat4 viewProj;
+
+layout(binding = 2, std430) readOnly buffer modelBuffer {
+    mat4 modelTransforms[];
+};
+
+//---- Functions ----//
+
+void main()
+{
+    samplerIndex = gl_DrawID;
+    mat4 model = modelTransforms[gl_InstanceID + gl_BaseInstance];
+    gl_Position = viewProj * model * vec4(vertexPos, 1.0);
+    fragmentTexCoord = vertexTexCoord;
+    fragmentNormal = normalize(mat3(model) * vertexNormal);
+}
+//------------//
