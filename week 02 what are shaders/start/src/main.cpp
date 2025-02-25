@@ -1,4 +1,9 @@
-#include "config.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type);
 
@@ -95,8 +100,8 @@ int main() {
 	glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
 
 	unsigned int shader = make_shader(
-		"../src/shaders/vertex.txt", 
-		"../src/shaders/fragment.txt"
+		"shaders/vertex.txt", 
+		"shaders/fragment.txt"
 	);
 
 	while (!glfwWindowShouldClose(window)) {

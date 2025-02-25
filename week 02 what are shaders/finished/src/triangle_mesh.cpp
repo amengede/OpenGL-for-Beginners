@@ -1,7 +1,8 @@
 #include "triangle_mesh.h"
+#include <vector>
+#include <glad/glad.h>
 
 TriangleMesh::TriangleMesh() {
-    
     std::vector<float> data = {
         -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
          0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -14,16 +15,19 @@ TriangleMesh::TriangleMesh() {
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+    size_t bufferSize = data.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, data.data(), 
+            GL_STATIC_DRAW);
 
     //position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 
+            GL_FALSE, 24, (void*)0);
     glEnableVertexAttribArray(0);
 
     //color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void*)12);
+    glVertexAttribPointer(1, 3, GL_FLOAT, 
+            GL_FALSE, 24, (void*)12);
     glEnableVertexAttribArray(1);
-
 }
 
 void TriangleMesh::draw() {
