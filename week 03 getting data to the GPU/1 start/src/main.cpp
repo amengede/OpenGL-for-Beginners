@@ -1,18 +1,25 @@
-#include "config.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
 #include "triangle_mesh.h"
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type);
 
-unsigned int make_shader(const std::string& vertex_filepath, const std::string& fragment_filepath) {
-
+unsigned int make_shader(const std::string& vertex_filepath, 
+        const std::string& fragment_filepath) {
 	//To store all the shader modules
 	std::vector<unsigned int> modules;
 
 	//Add a vertex shader module
-	modules.push_back(make_module(vertex_filepath, GL_VERTEX_SHADER));
+	modules.push_back(make_module(vertex_filepath, 
+                GL_VERTEX_SHADER));
 
 	//Add a fragment shader module
-	modules.push_back(make_module(fragment_filepath, GL_FRAGMENT_SHADER));
+	modules.push_back(make_module(fragment_filepath, 
+                GL_FRAGMENT_SHADER));
 
 	//Attach all the modules then link the program
 	unsigned int shader = glCreateProgram();
@@ -26,7 +33,8 @@ unsigned int make_shader(const std::string& vertex_filepath, const std::string& 
 	glGetProgramiv(shader, GL_LINK_STATUS, &success);
 	if (!success) {
 		char errorLog[1024];
-		glGetProgramInfoLog(shader, 1024, NULL, errorLog);
+		glGetProgramInfoLog(shader, 1024, 
+                NULL, errorLog);
 		std::cout << "Shader linking error:\n" << errorLog << '\n';
 	}
 
@@ -36,11 +44,10 @@ unsigned int make_shader(const std::string& vertex_filepath, const std::string& 
 	}
 
 	return shader;
-
 }
 
-unsigned int make_module(const std::string& filepath, unsigned int module_type) {
-	
+unsigned int make_module(const std::string& filepath, 
+        unsigned int module_type) {
 	std::ifstream file;
 	std::stringstream bufferedLines;
 	std::string line;
@@ -56,22 +63,25 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type) 
 	file.close();
 
 	unsigned int shaderModule = glCreateShader(module_type);
-	glShaderSource(shaderModule, 1, &shaderSrc, NULL);
+	glShaderSource(shaderModule, 1, &shaderSrc, 
+            NULL);
 	glCompileShader(shaderModule);
 
 	int success;
-	glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(shaderModule, GL_COMPILE_STATUS, 
+            &success);
 	if (!success) {
 		char errorLog[1024];
-		glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
-		std::cout << "Shader Module compilation error:\n" << errorLog << std::endl;
+		glGetShaderInfoLog(shaderModule, 1024, 
+                NULL, errorLog);
+		std::cout << "Shader Module compilation error:\n" << errorLog 
+            << std::endl;
 	}
 
 	return shaderModule;
 }
 
 int main() {
-	
 	GLFWwindow* window;
 
 	if (!glfwInit()) {
@@ -96,8 +106,8 @@ int main() {
 	TriangleMesh* triangle = new TriangleMesh();
 
 	unsigned int shader = make_shader(
-		"../src/shaders/vertex.txt", 
-		"../src/shaders/fragment.txt"
+		"shaders/vertex.txt", 
+		"shaders/fragment.txt"
 	);
 
 	while (!glfwWindowShouldClose(window)) {
